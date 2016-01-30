@@ -5,6 +5,7 @@ interface ENUM_TYPES
     const NONE = 0;
     const Binary = 1;
 	const Numeric = 2;
+    const DateTime = 3;
 }
 
 class MySQL_CRUD_API extends REST_CRUD_API {
@@ -147,6 +148,8 @@ class MySQL_CRUD_API extends REST_CRUD_API {
 			case 16:
 			case 246:
 				return ENUM_TYPES::Numeric;
+            case 12:
+                return ENUM_TYPES::DateTime;
 		}
 		
 		return ENUM_TYPES::NONE;
@@ -759,6 +762,9 @@ class REST_CRUD_API {
 					break;
 				case ENUM_TYPES::Numeric:
 					$object[$key] = $object[$key] + 0;
+					break;
+                case ENUM_TYPES::DateTime:
+                    $object[$key] = date(DateTime::ATOM, strtotime($object[$key]));
 					break;
 			}
 		}
