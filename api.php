@@ -716,30 +716,38 @@ class REST_CRUD_API {
 	}
 
 	protected function processFilterParameter($filter,$db) {
-		if ($filter) {
-			$filter = explode(',',$filter,3);
-			if (count($filter)==3) {
-				$match = $filter[1];
-				$filter[1] = 'LIKE';
-				if ($match=='cs') $filter[2] = '%'.$this->likeEscape($filter[2]).'%';
-				if ($match=='sw') $filter[2] = $this->likeEscape($filter[2]).'%';
-				if ($match=='ew') $filter[2] = '%'.$this->likeEscape($filter[2]);
-				if ($match=='eq') $filter[1] = '=';
-				if ($match=='ne') $filter[1] = '<>';
-				if ($match=='lt') $filter[1] = '<';
-				if ($match=='le') $filter[1] = '<=';
-				if ($match=='ge') $filter[1] = '>=';
-				if ($match=='gt') $filter[1] = '>';
-				if ($match=='in') {
-					$filter[1] = 'IN';
-					$filter[2] = explode(',',$filter[2]);
+            if ($filter) {
+                $filter = explode(',',$filter,3);
+                if (count($filter)==3) {
+                        $match = $filter[1];
+                        $filter[1] = 'LIKE';
+                        if ($match=='cs') $filter[2] = '%'.$this->likeEscape($filter[2]).'%';
+                        if ($match=='sw') $filter[2] = $this->likeEscape($filter[2]).'%';
+                        if ($match=='ew') $filter[2] = '%'.$this->likeEscape($filter[2]);
+                        if ($match=='eq') $filter[1] = '=';
+                        if ($match=='ne') $filter[1] = '<>';
+                        if ($match=='lt') $filter[1] = '<';
+                        if ($match=='le') $filter[1] = '<=';
+                        if ($match=='ge') $filter[1] = '>=';
+                        if ($match=='gt') $filter[1] = '>';
+                        if ($match=='in') {
+                                $filter[1] = 'IN';
+                                $filter[2] = explode(',',$filter[2]);
 
-				}
-			} else {
-				$filter = false;
-			}
-		}
-		return $filter;
+                        }
+                }
+                else if (count($filter) == 2) {
+                    if ($filter[1] == 'isnull') {
+                        $filter[1] = 'is';
+                        $filter[2] = null;
+                    }
+                    else $filter = false;
+                }
+                else {
+                    $filter = false;
+                }
+            }
+            return $filter;
 	}
 
 	protected function processPageParameter($page) {
@@ -963,6 +971,7 @@ class REST_CRUD_API {
 				if (is_array($filter)) {
 					$sql .= $i==0?' WHERE ':($satisfy=='all'?' AND ':' OR ');
 					$sql .= '"!" ! ?';
+
 					$params[] = $filter[0];
 					$params[] = $filter[1];
 					$params[] = $filter[2];
@@ -980,13 +989,14 @@ class REST_CRUD_API {
 		$sql .= ' FROM "!"';
 		$params[] = $table;
 		foreach ($filters as $i=>$filter) {
-			if (is_array($filter)) {
-				$sql .= $i==0?' WHERE ':($satisfy=='all'?' AND ':' OR ');
-				$sql .= '"!" ! ?';
-				$params[] = $filter[0];
-				$params[] = $filter[1];
-				$params[] = $filter[2];
-			}
+                    if (is_array($filter)) {
+                        $sql .= $i==0?' WHERE ':($satisfy=='all'?' AND ':' OR ');
+                        $sql .= '"!" ! ?';
+                        $params[] = $filter[0];
+                        $params[] = $filter[1];
+                        if (isset($filter[2]) || array_key_exists(2, $filter))
+                            $params[] = $filter[2];
+                    }
 		}
 		if (is_array($order)) {
 			$sql .= ' ORDER BY "!" !';
